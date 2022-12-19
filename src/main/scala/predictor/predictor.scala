@@ -28,6 +28,9 @@ object DelayRecProject {
 
     val counter = new Counter(sqlContext)
     counter.count()
+
+    //delay-predict
+    //reference: https://medium.com/@pedrodc/building-a-big-data-machine-learning-spark-application-for-flight-delay-prediction-4f9507cdb010
     //step1: pre-process date
     val data_2007tmp = prepFlightDelays("data/airflightDelays/2007.csv.bz2",sc)
     val data_2007 = data_2007tmp.map(rec => rec.gen_features._2)
