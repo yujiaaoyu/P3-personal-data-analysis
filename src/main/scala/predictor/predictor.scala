@@ -44,6 +44,7 @@ object DelayRecProject {
     val parsedTrainData = mapped2007Rdd.map(parseData)
     parsedTrainData.cache
     val myScaler = new StandardScaler(withMean = true, withStd = true).fit(parsedTrainData.map(x => x.features))
+    //    //convert the featuredRDD containing the features array to a new RDD containing the labeled points
     val myTrainData = parsedTrainData.map(x => LabeledPoint(x.label, myScaler.transform(Vectors.dense(x.features.toArray))))
     myTrainData.cache
 
@@ -158,11 +159,6 @@ object DelayRecProject {
                       distance: String,
                       cancelled: String) {
 
-    val holidays = List("01/01/2007", "01/15/2007", "02/19/2007", "05/28/2007", "06/07/2007", "07/04/2007",
-      "09/03/2007", "10/08/2007" ,"11/11/2007", "11/22/2007", "12/25/2007",
-      "01/01/2008", "01/21/2008", "02/18/2008", "05/22/2008", "05/26/2008", "07/04/2008",
-      "09/01/2008", "10/13/2008" ,"11/11/2008", "11/27/2008", "12/25/2008")
-
     def gen_features: (String, Array[Double]) = {
       val values = Array(
         depDelay.toDouble,
@@ -171,7 +167,6 @@ object DelayRecProject {
         dayOfWeek.toDouble,
         get_hour(crsDepTime).toDouble,
         distance.toDouble,
-        days_from_nearest_holiday(year.toInt, month.toInt, dayOfMonth.toInt)
       )
       new Tuple2(to_date(year.toInt, month.toInt, dayOfMonth.toInt), values)
     }
@@ -179,15 +174,6 @@ object DelayRecProject {
     def get_hour(depTime: String) : String = "%04d".format(depTime.toInt).take(2)
     def to_date(year: Int, month: Int, day: Int) = "%04d%02d%02d".format(year, month, day)
 
-    def days_from_nearest_holiday(year:Int, month:Int, day:Int): Int = {
-      val sampleDate = new DateTime(year, month, day, 0, 0)
-
-      holidays.foldLeft(3000) { (r, c) =>
-        val holiday = DateTimeFormat.forPattern("MM/dd/yyyy").parseDateTime(c)
-        val distance = Math.abs(Days.daysBetween(holiday, sampleDate).getDays)
-        math.min(r, distance)
-      }
-    }
   }
 
   def prepFlightDelays(infile: String, sc: SparkContext): RDD[DelayRec] = {
